@@ -1,13 +1,17 @@
 var socket = io();
 
+const inputMsg = document.getElementById('sendmsg');
 const btn = document.getElementById('btn');
+const list = document.getElementById('listmsg');
 
-btn.onclick = function () {
-    socket.emit('from_client');
+btn.onclick = function execute() {
+    socket.emit('send_msg', {
+        msg:inputMsg.value
+    });
 }
 
-socket.on('from_server', () => {
-    const div = document.createElement('div');
-    div.innerText = 'new event from server';
-    document.body.appendChild(div);
-})
+socket.on('mssg_rcvd', (data) => {
+    const listMsg = document.createElement('li');
+    listMsg.innerText = data.msg;
+    list.appendChild(listMsg);
+});

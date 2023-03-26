@@ -5,23 +5,36 @@ const server = http.createServer(app);
 const socketio = require('socket.io');
 const io = socketio(server);
 const connect = require('./config/dbConfig');
+const Chat = require('./models/chat');
 
 io.on('connection', (socket) => {
     console.log('a user connected ', socket.id);
-    
-    socket.on('send_msg', (data) => {
-        console.log(data);
-        // socket.broadcast.emit('mssg_rcvd', data);
-        // socket.emit('mssg_rcvd', data);
-        io.emit('mssg_rcvd', data);
+
+    socket.on('test room', (data) => {
+        socket.join(data.roomId);
     })
+
+    socket.on('send_msg', async (data) => {
+        const chat = await Chat.create({
+            content: data.msg,
+            user: data.username,
+            roomId: data.roomId
+        });
+        io.to(data.roomId).emit('mssg_rcvd', data);
+    });
 
 })
 
 app.set('view engine', 'ejs');
 
-app.get('/chat/:roomId', (req,res) => {
-    res.render('index');
+app.get('/chat/:roomId', async (req, res) => {
+    const chats = await Chat.find({
+        roomId: req.params.roomId
+    }).select('content user');
+    res.render('index', {
+        chats:chats,
+        id:req.params.roomId
+    });
 })
 
 app.use('/',express.static(__dirname + '/public'))

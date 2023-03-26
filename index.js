@@ -4,6 +4,7 @@ const app = express();
 const server = http.createServer(app);
 const socketio = require('socket.io');
 const io = socketio(server);
+const connect = require('./config/dbConfig');
 
 io.on('connection', (socket) => {
     console.log('a user connected ', socket.id);
@@ -17,9 +18,16 @@ io.on('connection', (socket) => {
 
 })
 
+app.set('view engine', 'ejs');
+
+app.get('/chat/:roomId', (req,res) => {
+    res.render('index');
+})
+
 app.use('/',express.static(__dirname + '/public'))
 
-server.listen(3000, () => {
+server.listen(3000, async () => {
     console.log('server started on PORT:3000');
-
+    await connect();
+    console.log('MONGODB server connected');
 })
